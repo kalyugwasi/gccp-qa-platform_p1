@@ -15,7 +15,7 @@ function parseQuizData(): InsertQuestion[] {
 
   const questions: InsertQuestion[] = [];
   let currentQuestion: string | null = null;
-  let currentAnswer: string | null = null;
+  let currentAnswers: string[] = [];
   let currentCategory: string | null = null;
 
   for (let i = 0; i < lines.length; i++) {
@@ -23,29 +23,29 @@ function parseQuizData(): InsertQuestion[] {
 
     if (line.endsWith('?')) {
       // If we have a complete previous question, add it
-      if (currentQuestion && currentAnswer) {
+      if (currentQuestion && currentAnswers.length > 0) {
         questions.push({
           question: currentQuestion,
-          answer: currentAnswer,
+          answers: currentAnswers,
           category: currentCategory || 'GCCP',
         });
       }
 
       // Start new question
       currentQuestion = line;
-      currentAnswer = null;
+      currentAnswers = [];
       currentCategory = null;
     } else if (line.startsWith('- ') && currentQuestion) {
-      // This is the answer
-      currentAnswer = line.substring(2);
+      // This is an answer
+      currentAnswers.push(line.substring(2));
     }
   }
 
   // Add the last question if exists
-  if (currentQuestion && currentAnswer) {
+  if (currentQuestion && currentAnswers.length > 0) {
     questions.push({
       question: currentQuestion,
-      answer: currentAnswer,
+      answers: currentAnswers,
       category: currentCategory || 'GCCP',
     });
   }
@@ -79,7 +79,7 @@ export class MemStorage implements IStorage {
     const lowercaseQuery = query.toLowerCase();
     return Array.from(this.questions.values()).filter(q => 
       q.question.toLowerCase().includes(lowercaseQuery) ||
-      q.answer.toLowerCase().includes(lowercaseQuery)
+      q.answers.some(answer => answer.toLowerCase().includes(lowercaseQuery))
     );
   }
 

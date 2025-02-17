@@ -13,9 +13,15 @@ export function QuestionCard({ question }: QuestionCardProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <p className="text-muted-foreground">{question.answer}</p>
+          <ul className="list-disc pl-4 space-y-1">
+            {question.answers.map((answer, index) => (
+              <li key={index} className="text-muted-foreground">
+                {answer}
+              </li>
+            ))}
+          </ul>
           {question.category && (
-            <p className="text-sm text-muted-foreground">Category: {question.category}</p>
+            <p className="text-sm text-muted-foreground mt-4">Category: {question.category}</p>
           )}
         </div>
       </CardContent>

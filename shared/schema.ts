@@ -5,13 +5,13 @@ import { z } from "zod";
 export const questions = pgTable("questions", {
   id: serial("id").primaryKey(),
   question: text("question").notNull(),
-  answer: text("answer").notNull(),
+  answers: text("answers").array().notNull(),
   category: text("category"),
 });
 
 export const insertQuestionSchema = createInsertSchema(questions).pick({
   question: true,
-  answer: true,
+  answers: true,
   category: true,
 });
 
