@@ -1,16 +1,22 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/search-bar";
 import { QuestionCard } from "@/components/question-card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { type Question } from "@shared/schema";
+import { getAllQuestions, searchQuestions } from "@/lib/data";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
   const [search, setSearch] = useState("");
 
   const { data: questions, isLoading } = useQuery<Question[]>({
-    queryKey: [search ? `/api/search?q=${search}` : "/api/questions"],
-    enabled: !!search, // Only fetch when there's a search query
+    queryKey: ["questions", search],
+    queryFn: async () => {
+      if (!search) {
+        return getAllQuestions();
+      }
+      return searchQuestions(search);
+    },
   });
 
   return (
@@ -32,28 +38,24 @@ export default function Home() {
             <SearchBar value={search} onChange={setSearch} />
           </div>
 
-          {search && (
-            <div className="mt-8">
-              {isLoading ? (
-                <div className="space-y-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-full h-32 bg-muted animate-pulse rounded-lg"
-                    />
-                  ))}
-                </div>
-              ) : questions && questions.length > 0 ? (
-                <div className="space-y-4">
-                  {questions.map((question) => (
-                    <QuestionCard key={question.id} question={question} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  No matching questions found. Try a different search term.
-                </div>
-              )}
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-full h-32 bg-muted animate-pulse rounded-lg"
+                />
+              ))}
+            </div>
+          ) : questions && questions.length > 0 ? (
+            <div className="space-y-4">
+              {questions.map((question) => (
+                <QuestionCard key={question.id} question={question} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground">
+              No matching questions found. Try a different search term.
             </div>
           )}
         </div>

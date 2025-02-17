@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Generate the static data
+node scripts/generate-data.js
+
 # Build the application
 npm run build
 

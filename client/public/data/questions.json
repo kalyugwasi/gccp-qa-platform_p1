@@ -1,0 +1,15 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What are some AppSheet data types available for you to use in your app? Select four.",
+      "answers": [
+        "Name",
+        "Price",
+        "ChangeTimestamp",
+        "Address"
+      ],
+      "category": "GCCP"
+    }
+  ]
+}
