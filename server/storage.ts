@@ -94,21 +94,43 @@ export class MemStorage implements IStorage {
 
   async searchQuestions(query: string): Promise<Question[]> {
     const lowercaseQuery = query.toLowerCase();
-    const words = lowercaseQuery.split(' ').filter(word => word.length > 2);
+    const words = lowercaseQuery.split(' ').filter(word => word.length > 3);
 
-    return Array.from(this.questions.values()).filter(q => {
-      // Match question text
-      const questionMatch = q.question.toLowerCase().includes(lowercaseQuery) ||
-        words.some(word => q.question.toLowerCase().includes(word));
+    // Score each question based on match quality
+    const scoredQuestions = Array.from(this.questions.values()).map(q => {
+      const qLower = q.question.toLowerCase();
+      let score = 0;
 
-      // Match answers
+      // Exact match gets highest score
+      if (qLower === lowercaseQuery) {
+        score = 100;
+      }
+      // Contains entire query as substring
+      else if (qLower.includes(lowercaseQuery)) {
+        score = 75;
+      }
+      // Partial word matches
+      else {
+        const matchedWords = words.filter(word => qLower.includes(word));
+        score = (matchedWords.length / words.length) * 50;
+      }
+
+      // Boost score if answers contain the query
       const answerMatch = q.answers.some(answer => 
-        answer.toLowerCase().includes(lowercaseQuery) ||
-        words.some(word => answer.toLowerCase().includes(word))
+        answer.toLowerCase().includes(lowercaseQuery)
       );
+      if (answerMatch) {
+        score += 10;
+      }
 
-      return questionMatch || answerMatch;
+      return { question: q, score };
     });
+
+    // Filter questions with a minimum score and sort by score
+    return scoredQuestions
+      .filter(({ score }) => score > 20) // Minimum threshold
+      .sort((a, b) => b.score - a.score)
+      .map(({ question }) => question);
   }
 
   async createQuestion(question: InsertQuestion): Promise<Question> {
