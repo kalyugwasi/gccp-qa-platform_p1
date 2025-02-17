@@ -16,7 +16,7 @@ function parseQuizData(): InsertQuestion[] {
   const questions: InsertQuestion[] = [];
   let currentQuestion: string | null = null;
   let currentAnswers: string[] = [];
-  let currentCategory: string | null = null;
+  let currentCategory: string | null = 'GCCP'; // Default category
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -34,14 +34,13 @@ function parseQuizData(): InsertQuestion[] {
         questions.push({
           question: currentQuestion,
           answers: currentAnswers,
-          category: currentCategory || 'GCCP',
+          category: currentCategory,
         });
       }
 
       // Start new question
       currentQuestion = line;
       currentAnswers = [];
-      currentCategory = null;
 
       // Check if next line is part of the question (like "Select two answers")
       if (i + 1 < lines.length) {
@@ -63,7 +62,7 @@ function parseQuizData(): InsertQuestion[] {
     questions.push({
       question: currentQuestion,
       answers: currentAnswers,
-      category: currentCategory || 'GCCP',
+      category: currentCategory,
     });
   }
 
@@ -83,7 +82,12 @@ export class MemStorage implements IStorage {
   private initializeData() {
     const quizQuestions = parseQuizData();
     quizQuestions.forEach(q => {
-      const question: Question = { id: this.currentId++, ...q };
+      const question: Question = {
+        id: this.currentId++,
+        question: q.question,
+        answers: q.answers,
+        category: q.category || 'GCCP', // Ensure category is never undefined
+      };
       this.questions.set(question.id, question);
     });
   }
@@ -135,7 +139,12 @@ export class MemStorage implements IStorage {
 
   async createQuestion(question: InsertQuestion): Promise<Question> {
     const id = this.currentId++;
-    const newQuestion: Question = { id, ...question };
+    const newQuestion: Question = {
+      id,
+      question: question.question,
+      answers: question.answers,
+      category: question.category || 'GCCP', // Ensure category is never undefined
+    };
     this.questions.set(id, newQuestion);
     return newQuestion;
   }
