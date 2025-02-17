@@ -4,17 +4,15 @@ import { z } from "zod";
 
 export const questions = pgTable("questions", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
+  question: text("question").notNull(),
   answer: text("answer").notNull(),
-  tags: text("tags").array().notNull(),
+  category: text("category"),
 });
 
 export const insertQuestionSchema = createInsertSchema(questions).pick({
-  title: true,
-  content: true,
+  question: true,
   answer: true,
-  tags: true,
+  category: true,
 });
 
 export type Question = typeof questions.$inferSelect;

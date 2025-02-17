@@ -1,4 +1,6 @@
 import { questions, type Question, type InsertQuestion } from "@shared/schema";
+import fs from "fs";
+import path from "path";
 
 export interface IStorage {
   getAllQuestions(): Promise<Question[]>;
@@ -6,20 +8,50 @@ export interface IStorage {
   createQuestion(question: InsertQuestion): Promise<Question>;
 }
 
-const initialQuestions: InsertQuestion[] = [
-  {
-    title: "What is Google Cloud Platform?",
-    content: "Can someone explain what GCP is and its main services?",
-    answer: "Google Cloud Platform (GCP) is a suite of cloud computing services that runs on the same infrastructure that Google uses internally. Key services include Compute Engine (VMs), Cloud Storage, BigQuery (data analytics), and App Engine (PaaS).",
-    tags: ["basics", "cloud"]
-  },
-  {
-    title: "How to create a VM instance?",
-    content: "What are the steps to create a virtual machine in GCP?",
-    answer: "1. Go to Compute Engine > VM instances\n2. Click 'Create Instance'\n3. Choose machine type and configuration\n4. Select boot disk and OS\n5. Configure networking\n6. Click 'Create'",
-    tags: ["compute-engine", "vm"]
+function parseQuizData(): InsertQuestion[] {
+  const filePath = path.join(process.cwd(), "attached_assets", "Arcade_lesson_quiz_answer_quicklab.txt");
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const lines = content.split('\n');
+
+  const questions: InsertQuestion[] = [];
+  let currentQuestion: string | null = null;
+  let currentAnswer: string | null = null;
+  let currentCategory: string | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (line.endsWith('?')) {
+      // If we have a complete previous question, add it
+      if (currentQuestion && currentAnswer) {
+        questions.push({
+          question: currentQuestion,
+          answer: currentAnswer,
+          category: currentCategory || 'GCCP',
+        });
+      }
+
+      // Start new question
+      currentQuestion = line;
+      currentAnswer = null;
+      currentCategory = null;
+    } else if (line.startsWith('- ') && currentQuestion) {
+      // This is the answer
+      currentAnswer = line.substring(2);
+    }
   }
-];
+
+  // Add the last question if exists
+  if (currentQuestion && currentAnswer) {
+    questions.push({
+      question: currentQuestion,
+      answer: currentAnswer,
+      category: currentCategory || 'GCCP',
+    });
+  }
+
+  return questions;
+}
 
 export class MemStorage implements IStorage {
   private questions: Map<number, Question>;
@@ -32,7 +64,8 @@ export class MemStorage implements IStorage {
   }
 
   private initializeData() {
-    initialQuestions.forEach(q => {
+    const quizQuestions = parseQuizData();
+    quizQuestions.forEach(q => {
       const question: Question = { id: this.currentId++, ...q };
       this.questions.set(question.id, question);
     });
@@ -45,9 +78,8 @@ export class MemStorage implements IStorage {
   async searchQuestions(query: string): Promise<Question[]> {
     const lowercaseQuery = query.toLowerCase();
     return Array.from(this.questions.values()).filter(q => 
-      q.title.toLowerCase().includes(lowercaseQuery) ||
-      q.content.toLowerCase().includes(lowercaseQuery) ||
-      q.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery))
+      q.question.toLowerCase().includes(lowercaseQuery) ||
+      q.answer.toLowerCase().includes(lowercaseQuery)
     );
   }
 

@@ -1,5 +1,4 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { Question } from "@shared/schema";
 
 interface QuestionCardProps {
@@ -10,22 +9,14 @@ export function QuestionCard({ question }: QuestionCardProps) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-xl">{question.title}</CardTitle>
-        <div className="flex gap-2 flex-wrap">
-          {question.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">
-              {tag}
-            </Badge>
-          ))}
-        </div>
+        <CardTitle className="text-lg font-medium">{question.question}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <p className="text-muted-foreground">{question.content}</p>
-          <div className="pt-4 border-t">
-            <h4 className="font-semibold mb-2">Answer:</h4>
-            <p className="text-foreground whitespace-pre-wrap">{question.answer}</p>
-          </div>
+        <div className="space-y-2">
+          <p className="text-muted-foreground">{question.answer}</p>
+          {question.category && (
+            <p className="text-sm text-muted-foreground">Category: {question.category}</p>
+          )}
         </div>
       </CardContent>
     </Card>
