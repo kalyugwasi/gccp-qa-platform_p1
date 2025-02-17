@@ -21,7 +21,14 @@ function parseQuizData(): InsertQuestion[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
-    if (line.endsWith('?')) {
+    if (line === '') continue;
+
+    // Check if this line is part of a question
+    const isQuestionStart = line.includes('?') || 
+                           (line.toLowerCase().includes('select') && 
+                            line.toLowerCase().includes('answer'));
+
+    if (isQuestionStart) {
       // If we have a complete previous question, add it
       if (currentQuestion && currentAnswers.length > 0) {
         questions.push({
@@ -35,6 +42,16 @@ function parseQuizData(): InsertQuestion[] {
       currentQuestion = line;
       currentAnswers = [];
       currentCategory = null;
+
+      // Check if next line is part of the question (like "Select two answers")
+      if (i + 1 < lines.length) {
+        const nextLine = lines[i + 1].trim();
+        if (nextLine.toLowerCase().includes('select') && 
+            nextLine.toLowerCase().includes('answer')) {
+          currentQuestion += ' ' + nextLine;
+          i++; // Skip the next line since we've included it
+        }
+      }
     } else if (line.startsWith('- ') && currentQuestion) {
       // This is an answer
       currentAnswers.push(line.substring(2));
@@ -77,10 +94,21 @@ export class MemStorage implements IStorage {
 
   async searchQuestions(query: string): Promise<Question[]> {
     const lowercaseQuery = query.toLowerCase();
-    return Array.from(this.questions.values()).filter(q => 
-      q.question.toLowerCase().includes(lowercaseQuery) ||
-      q.answers.some(answer => answer.toLowerCase().includes(lowercaseQuery))
-    );
+    const words = lowercaseQuery.split(' ').filter(word => word.length > 2);
+
+    return Array.from(this.questions.values()).filter(q => {
+      // Match question text
+      const questionMatch = q.question.toLowerCase().includes(lowercaseQuery) ||
+        words.some(word => q.question.toLowerCase().includes(word));
+
+      // Match answers
+      const answerMatch = q.answers.some(answer => 
+        answer.toLowerCase().includes(lowercaseQuery) ||
+        words.some(word => answer.toLowerCase().includes(word))
+      );
+
+      return questionMatch || answerMatch;
+    });
   }
 
   async createQuestion(question: InsertQuestion): Promise<Question> {
