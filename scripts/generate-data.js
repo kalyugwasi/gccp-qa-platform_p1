@@ -10,6 +10,7 @@ function parseQuizData() {
   let currentId = 1;
   let currentQuestion = null;
   let currentAnswers = [];
+  let currentCategory = 'GCCP';
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -17,8 +18,8 @@ function parseQuizData() {
     if (line === '') continue;
 
     const isQuestionStart = line.includes('?') || 
-                          (line.toLowerCase().includes('select') && 
-                           line.toLowerCase().includes('answer'));
+                         (line.toLowerCase().includes('select') && 
+                          line.toLowerCase().includes('answer'));
 
     if (isQuestionStart) {
       if (currentQuestion && currentAnswers.length > 0) {
@@ -26,7 +27,7 @@ function parseQuizData() {
           id: currentId++,
           question: currentQuestion,
           answers: currentAnswers,
-          category: 'GCCP',
+          category: currentCategory,
         });
       }
 
@@ -51,18 +52,18 @@ function parseQuizData() {
       id: currentId++,
       question: currentQuestion,
       answers: currentAnswers,
-      category: 'GCCP',
+      category: currentCategory,
     });
   }
 
   return questions;
 }
 
-// Create the directory if it doesn't exist
+// Ensure the output directory exists
 const outputDir = path.join(process.cwd(), 'client', 'public', 'data');
 fs.mkdirSync(outputDir, { recursive: true });
 
-// Generate the JSON file
+// Generate and write the questions.json file
 const questions = parseQuizData();
 fs.writeFileSync(
   path.join(outputDir, 'questions.json'),

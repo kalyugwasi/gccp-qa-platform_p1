@@ -1,11 +1,12 @@
 import type { Question } from "@shared/schema";
+import { BASE_PATH } from "./paths";
 
 export async function getAllQuestions(): Promise<Question[]> {
   if (process.env.NODE_ENV === "development") {
     const response = await fetch("/api/questions");
     return response.json();
   } else {
-    const response = await fetch("/gccp-qa-platform/data/questions.json");
+    const response = await fetch(`${BASE_PATH}/data/questions.json`);
     const data = await response.json();
     return data.questions;
   }
