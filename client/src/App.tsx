@@ -6,9 +6,7 @@ import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 import { useTheme } from "@/hooks/use-theme";
-
-// Get the base path from the environment or use the repository name for GitHub Pages
-const basePath = import.meta.env.BASE_URL || "/gccp-qa-platform";
+import { BASE_PATH } from "@/lib/paths";
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
   useTheme(); // Initialize theme system
@@ -17,7 +15,7 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 function Router() {
   return (
-    <WouterRouter base={basePath}>
+    <WouterRouter base={BASE_PATH}>
       <Switch>
         <Route path="/" component={Home} />
         <Route component={NotFound} />

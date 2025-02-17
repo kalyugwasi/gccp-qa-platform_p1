@@ -15,7 +15,7 @@ git init
 git checkout -b gh-pages
 git add .
 git commit -m "Deploy to GitHub Pages"
-git remote add origin https://github.com/yourusername/gccp-qa-platform.git
+git remote add origin https://github.com/kalyugwasi/gccp-qa-platform.git
 git push -f origin gh-pages
 
 # Clean up
